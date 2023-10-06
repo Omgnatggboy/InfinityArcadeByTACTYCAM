@@ -168,20 +168,20 @@ void saveGameHistoryToCSV() {
 }
 
 // Function to load game history from a CSV file
-void loadGameHistoryFromCSV() {
-    FILE *csvFile = fopen("game_history.csv", "r");
-    if (csvFile == NULL) {
-        return; // File doesn't exist or can't be opened so return
-    }
-    char line[256];
-    int count = 0;
-    while (fgets(line, sizeof(line), csvFile) && count < MAX_HISTORY) {
-        sscanf(line, "%[^,],%d,%d", gameHistory[count].playerName, &gameHistory[count].targetNumber, &gameHistory[count].numGuesses /*,%s , gameHistory[count].result*/);
-        count++;
-    }
-    fclose(csvFile);
-    gameCount = count;
-}
+// void loadGameHistoryFromCSV() {
+//     FILE *csvFile = fopen("game_history.csv", "r");
+//     if (csvFile == NULL) {
+//         return; // File doesn't exist or can't be opened so return
+//     }
+//     char line[256];
+//     int count = 0;
+//     while (fgets(line, sizeof(line), csvFile) && count < MAX_HISTORY) {
+//         sscanf(line, "%[^,],%d,%d", gameHistory[count].playerName, &gameHistory[count].targetNumber, &gameHistory[count].numGuesses /*,%s , gameHistory[count].result*/);
+//         count++;
+//     }
+//     fclose(csvFile);
+//     gameCount = count;
+// }
 
 // Function to view game results from a CSV file
 void viewGameResultsFromCSV() {
