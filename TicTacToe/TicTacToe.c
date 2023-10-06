@@ -1,158 +1,204 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#define BOARD_SIZE 3
-typedef unsigned long long bitboard;
-
-// Bitmasks for each winning combination
-const bitboard WIN_MASKS[] = {
-    0x000000000000007, // Row 1
-    0x000000000000038, // Row 2
-    0x0000000000001C0, // Row 3
-    0x000000000000049, // Column 1
-    0x000000000000092, // Column 2
-    0x000000000000124, // Column 3
-    0x000000000000111, // Diagonal 1
-    0x000000000000054  // Diagonal 2
-};
-
-// Function to print the board
-void printBoard(const bitboard board) {
-    printf("     1   2   3\n");
-    printf("   +---+---+---+\n");
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        printf(" %d ", i + 1);
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            int index = i * BOARD_SIZE + j;
-            char c = (board & (1ULL << index)) ? 'X' : ((board & (1ULL << (index + 9))) ? 'O' : ' ');
-            printf("| %c ", c);
+ 
+// Globally declared 2D-array
+char board[3][3];
+ 
+// Function to initialize the game board
+void initializeBoard()
+{
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            board[i][j] = ' ';
         }
-        printf("|\n");
-        printf("   +---+---+---+\n");
     }
-}
-
-// Function to check if a player has won the game
-bool checkWin(const bitboard board, const bitboard mask) { return ((board & mask) == mask); }
-
-// Function to check if the game has ended in a draw
-bool checkDraw(const bitboard board) { return ((board & 0x1FFULL) == 0x1FFULL); }
-
-// Function to make a move on the board
-bool makeMove(bitboard *board, const int row, const int col, const int player) {
-    int index = (row - 1) * BOARD_SIZE + (col - 1);
-    if ((*board & (1ULL << index)) || (*board & (1ULL << (index + 9)))) {
-        return false; // Invalid move
-    }
-    *board |= (1ULL << (index + (player == 1 ? 0 : 9)));
-    return true; // Valid move
-}
-
-// Function to save the game state to a CSV file
-void saveGame(const bitboard board) {
-    FILE *file = fopen("tictactoe.csv", "a");
-    if (file == NULL) {
-        printf("Error opening file for writing.\n");
-        return;
-    }
-
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            int index = i * BOARD_SIZE + j;
-            char c = (board & (1ULL << index)) ? 'X' : ((board & (1ULL << (index + 9))) ? 'O' : ' ');
-            fprintf(file, "%c,", c);
-        }
-        fprintf(file, "\n");
-    }
-
-    fclose(file);
-    printf("Game saved to 'tictactoe.csv'.\n");
-}
-
-// Function to load the game state from a CSV file
-void loadGame(bitboard *board) {
-    FILE *file = fopen("tictactoe.csv", "r");
-    if (file == NULL) {
-        printf("No saved game found.\n");
-        return;
-    }
-
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            char c;
-            fscanf(file, " %c,", &c);
-            int index = i * BOARD_SIZE + j;
-            if (c == 'X') {
-                *board |= (1ULL << index);
-            } else if (c == 'O') {
-                *board |= (1ULL << (index + 9));
+    int count = 1;
+    printf("\n\n\t  ");
+    for(int i = 0; i < 3; i++)
+    {
+        for(int j = 0; j < 3; j++)
+        {
+            printf("%d", count++);
+            if (j < 2)
+            {
+                printf("  |  ");
             }
         }
+        if (i < 2)
+        printf("\n\t----------------\n\t  ");
     }
-
-    fclose(file);
-    printf("Game loaded from 'tictactoe.csv'.\n");
+    printf("\n\n\n");
 }
-
-// Function to ask players if they want to continue playing or end the game
-bool askToContinue() {
-    char input[10];
-    printf("Do you want to continue playing? (y/n): ");
-    scanf("%s", input);
-    return (input[0] == 'y' || input[0] == 'Y');
+ 
+// Function shows the game board
+void showBoard(int x, int y)
+{
+    printf("\n\n\t  ");
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            printf("%c", board[i][j]);
+            if (j < 2)
+            {
+                printf("  |  ");
+            }
+        }
+        if (i < 2)
+        printf("\n\t----------------\n\t  ");
+    }
+    printf("\n\n\n");
 }
-
-// int main() {
-    bitboard board = 0;
-    int currentPlayer = 1;
-    int row, col;
-    bool gameRunning = true;
-
-    printf("Welcome to Tic-Tac-Toe!\n");
-
-    while (gameRunning) {
-        printf("\nPlayer %d's turn\n", currentPlayer);
-        printBoard(board);
-
-        // Input row and column from the current player
-        printf("Enter row (1-3) and column (1-3): ");
-        scanf("%d %d", &row, &col);
-
-        if (makeMove(&board, row, col, currentPlayer)) {
-            for (int i = 0; i < 8; i++) {
-                if (checkWin(board, WIN_MASKS[i])) {
-                    printBoard(board);
-                    printf("Player %d wins!\n", currentPlayer);
-                    gameRunning = askToContinue();
-                    break;
+ 
+// Function to update the game board
+int updateBoard(int cell, char playerSign)
+{
+    int row = (cell - 1) / 3;
+    int col = (cell - 1) % 3;
+    int isValid = 1;
+ 
+    // accessing already played cell number
+    if (board[row][col] != ' ')
+    {
+        printf("\nInvalid: Cell is already Filled!\n");
+        isValid = 0;
+    }
+ 
+    // valid cell position
+    else
+    {
+        board[row][col] = playerSign;
+    }
+    showBoard(row, col);
+ 
+    return isValid;
+}
+ 
+// Function to check the winner of the game
+int checkWinner(char sg)
+{
+    // check all rows
+    if (board[0][0] == sg && board[0][1] == sg && board[0][2] == sg ||
+      board[1][0] == sg && board[1][1] == sg && board[1][2] == sg ||
+      board[2][0] == sg && board[2][1] == sg && board[2][2] == sg)
+    {
+        return 1;
+      }
+      // check all columns
+    else if (board[0][0] == sg && board[1][0] == sg && board[2][0] == sg ||
+           board[0][1] == sg && board[1][1] == sg && board[2][1] == sg ||
+           board[0][2] == sg && board[1][2] == sg && board[2][2] == sg)
+    {
+        return 1;
+    }
+    // check both diagonals
+    else if (board[0][0] == sg && board[1][1] == sg && board[2][2] == sg ||
+           board[0][2] == sg && board[1][1] == sg && board[2][0] == sg)
+    {
+        return 1;
+    }
+ 
+    // There is no winner
+    return 0;
+}
+ 
+// Start your game from here
+void playTicTacToe()
+{
+    int gameResult = 0;
+    int cell = 0;
+    int playCount = 0;
+    int updationResult = 1;
+ 
+    char playerSign = ' ';
+ 
+    // start playing the game
+    while (!gameResult && playCount < 9)
+    {
+        if (playCount % 2 == 0)
+        {
+            // player 1
+            printf("\nPlayer 1 [ X ] : ");
+            playerSign = 'X';
+        }
+        else
+        {
+            // player 2
+            printf("\nPlayer 2 [ O ] : ");
+            playerSign = 'O';
+        }
+        scanf("%d", &cell);
+        if (cell > 0 && cell < 10)
+        {
+            updationResult = updateBoard(cell, playerSign);
+            // if updation is possible
+            if (updationResult)
+            {
+                gameResult = checkWinner(playerSign);
+                // print the winner of the game
+                if (gameResult)
+                {
+                    printf("\t *** Player %d Won!! ***\n", playerSign == 'X' ? 1 : 2);
                 }
+                playCount++;
             }
-            if (checkDraw(board)) {
-                printBoard(board);
-                printf("It's a draw!\n");
-                gameRunning = askToContinue();
-            } else {
-                currentPlayer = (currentPlayer == 1) ? 2 : 1;
-            }
-        } else {
-            printf("Invalid move! Try again.\n");
         }
-
-        // Ask the user if they want to start a new game or continue the game from the beginning
-        char input[10];
-        printf("Do you want to start a new game or continue from the beginning? (n/c): ");
-        scanf("%s", input);
-        if (input[0] == 'n' || input[0] == 'N') {
-            board = 0;
-            currentPlayer = 1;
-        } else {
-            loadGame(&board);
-            currentPlayer = 2;
+        else if (cell == -1)
+        {
+            printf("\n\tGame Terminated\n");
+            return;
+        }
+        else
+        {
+            printf("\nPlease Enter a valid cell value\n");
         }
     }
-    saveGame(board); // Save the final game state
-    printf("Press Enter to exit...");
-    getchar(); // Wait for user input before closing window
+ 
+    // no one won the game
+    if (!gameResult && playCount == 9)
+    {
+        printf("\n\t *** Draw...  ***\n");
+    }
+    printf("\n\t --- Game Over --- \n");
+}
+ 
+int main()
+{
+    printf("--------- Tic Tac Toe ----------\n\n");
+ 
+    printf("\n* Instructions \n\n");
+    printf("\tPlayer 1 sign = X\n");
+    printf("\tPlayer 2 sign = O");
+    printf("\n\tTo exit from game, Enter -1\n");
+ 
+    printf("\n\n* Cell Numbers on Board\n");
+    initializeBoard();
+ 
+    char start = ' ';
+    printf("\n> Press Enter to start...");
+ 
+    scanf("%c", &start);
+ 
+    if (start)
+    {
+        int userChoice = 1;
+        // restart the game
+        while (userChoice)
+        {
+            playTicTacToe();
+            printf("\n* Menu\n");
+            printf("\nPress 1 to Restart");
+            printf("\nPress 0 for Exit");
+            printf("\n\nChoice: ");
+            scanf("%d", &userChoice);
+            if (userChoice)
+            {
+                initializeBoard();
+            }
+            printf("\n");
+        }
+    }
+    printf("\n :: Thanks for playing Tic Tac Toe game! :: \n");
     return 0;
 }
