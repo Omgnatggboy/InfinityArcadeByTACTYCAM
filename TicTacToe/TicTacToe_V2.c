@@ -122,11 +122,17 @@ void viewGameResults() {
 }
 
 int main() {
+    printf("Welcome to Tic-Tac-Toe!\n");
+    printf("--- \tSet up ---\n");
     int currentPlayer = 1; // 1 for Player 1 (X), 2 for Player 2 (O)
+    printf("Loading : currentPlayer\n");
     int cell;
+    printf("Loading : cell\n");
     int gameResult = 0;
+    printf("Loading : gameResult\n");
     int restart = 1;
-
+    printf("Loading : restart\n");
+    printf("--- \tDone ---\n");
     printf("Welcome to Tic-Tac-Toe!\n");
 
     do {
