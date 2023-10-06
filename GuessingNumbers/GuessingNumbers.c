@@ -20,7 +20,7 @@ void addGameToHistory(const char playerName[], int targetNumber, int numGuesses/
 void searchGameHistory(const char playerName[]);
 void summarizeGameHistory();
 void saveGameHistoryToCSV();
-void loadGameHistoryFromCSV();
+// void loadGameHistoryFromCSV();
 void viewGameResultsFromCSV();
 
 GameRecord gameHistory[MAX_HISTORY];
